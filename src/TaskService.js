@@ -53,3 +53,4 @@ class TaskService {
     }
 }
     
+export { TaskService };
