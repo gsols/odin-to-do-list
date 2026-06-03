@@ -41,6 +41,15 @@ class Project {
     removeSection(sectionId){
         this.sections = this.sections.filter(section => section.getId() !== sectionId);
     }
+
+    toJSON(){
+        return {
+            id: this.id,
+            name: this.name,
+            tasks: this.tasks.map(task => task.toJSON()),
+            sections: this.sections.map(section => section.toJSON())
+        };
+    }
 }
 
 export { Project };

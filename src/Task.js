@@ -73,6 +73,18 @@ class Task{
     removeSubtask(subtaskId) {
         this.subtasks = this.subtasks.filter(subtask => subtask.getId() !== subtaskId);
     }
-}
 
+    toJSON(){
+        return {
+            id: this.id,
+            title: this.title,
+            description: this.description,
+            dueDate: this.dueDate,
+            time: this.time,
+            priority: this.priority,
+            done: this.done,
+            subtasks: this.subtasks.map(subtask => subtask.toJSON())
+        };
+    }
+}
 export { Task, Priority };
