@@ -1,9 +1,3 @@
-const Priority = Object.freeze({
-    LOW: 'Low',
-    MEDIUM: 'Medium',
-    HIGH: 'High'
-});
-
 class Task{
     constructor(title, description, dueDate, time, priority){
         this.id = crypto.randomUUID();
@@ -13,6 +7,7 @@ class Task{
         this.time = time;
         this.priority = priority;
         this.done = false;
+        this.subtasks = [];
     }
 
     setTitle(title){
@@ -65,6 +60,18 @@ class Task{
     
     toggleDone(){
         this.done = !this.done;
+    }
+
+    addSubtask(subtask) {
+        this.subtasks.push(subtask);
+    }
+
+    getSubtasks() {
+        return this.subtasks;
+    }
+
+    removeSubtask(subtaskId) {
+        this.subtasks = this.subtasks.filter(subtask => subtask.getId() !== subtaskId);
     }
 }
 

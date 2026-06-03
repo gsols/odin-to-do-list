@@ -1,0 +1,51 @@
+*, *::before, *::after {
+  box-sizing: border-box; /* Includes padding and borders within the element's total width and height */
+  margin: 0;              /* Removes default outer margins on body, headings, and paragraphs */
+  padding: 0;             /* Removes default inner padding on lists and containers */
+}
+
+
+.side-bar {
+  width: 250px; /* Fixed width for the sidebar */
+  height: 100vh; /* Full viewport height */
+  background-color: #f4f4f4; /* Light gray background */
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: flex-start; /* Align children to the start (left) */
+  padding: 20px 0 0 20px; /* Add some padding around the content */
+}
+
+.side-bar .header {
+  font-size: 24px; /* Larger font size for the title */
+  font-weight: bold; /* Make the title bold */
+  margin-bottom: 20px; /* Space below the title */
+} 
+
+.side-bar nav {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  width: 100%; /* Make nav take full width of sidebar */
+}
+
+
+.side-bar nav div:hover {
+  background-color: #ddd; /* Light gray background on hover */
+}
+
+.projects-div {
+  margin-top: 30px; /* Space above the projects section */
+  width: 100%; /* Make projects div take full width of sidebar */
+}
+
+.side-nav div {
+  display: flex;
+  align-items: center; /* Center items vertically */
+  padding: 10px; /* Add padding for better click area */
+  cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.side-nav svg {
+  width: 24px; /* Set width of the SVG icon */
+  height: 24px; /* Set height of the SVG icon */
+  margin-right: 8px;
+}
