@@ -19,11 +19,13 @@ class ProjectService {
     addProject(name) {
         const project = ProjectFactory.createProject(name);
         this.projects.push(project);
+        this.saveToLocalStorage();
         return project;
     }
 
     deleteProject(id) {
         this.projects = this.projects.filter(project => project.getId() !== id);
+        this.saveToLocalStorage();
     }
 
     getProjects() {
@@ -41,6 +43,7 @@ class ProjectService {
         }
         const section = SectionFactory.createSection(sectionName);
         project.addSection(section);
+        this.saveToLocalStorage();
         return section;
     }
 
@@ -50,6 +53,7 @@ class ProjectService {
             return null;
         }
         project.removeSection(sectionId);
+        this.saveToLocalStorage();
         return true;
     }
 
@@ -63,6 +67,7 @@ class ProjectService {
             return null;
         }
         section.addTask(task);
+        this.saveToLocalStorage();
         return task;
     }
 
@@ -76,6 +81,7 @@ class ProjectService {
             return null;
         }
         section.removeTask(taskId);
+        this.saveToLocalStorage();
         return true;
     }
 
@@ -85,6 +91,7 @@ class ProjectService {
             return null;
         }
         project.addTask(task);
+        this.saveToLocalStorage();
         return task;
     }
 
@@ -94,6 +101,7 @@ class ProjectService {
             return null;
         }
         project.removeTask(taskId);
+        this.saveToLocalStorage();
         return true;
     }
 }

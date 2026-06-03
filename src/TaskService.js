@@ -19,6 +19,7 @@ class TaskService {
     addTask(title, description, dueDate, time, priority) {
         const task = TaskFactory.createTask(title, description, dueDate, time, priority);
         this.tasks.push(task);
+        this.saveToLocalStorage();
         return task;
     }
 
@@ -34,6 +35,7 @@ class TaskService {
         const task = this.getTaskById(id);
         if (task) {
             task.toggleDone();
+            this.saveToLocalStorage();
             return task;
         }
         return null;
@@ -50,6 +52,7 @@ class TaskService {
         if (dueDate !== undefined) task.setDueDate(dueDate);
         if (time !== undefined) task.setTime(time);
         if (priority !== undefined) this.setTaskPriority(id, priority);
+        this.saveToLocalStorage();
         return task;
     }
 
@@ -59,6 +62,7 @@ class TaskService {
         }
         const task = this.getTaskById(id);
         task.setPriority(priority);
+        this.saveToLocalStorage();
         return task;
     }
 }
