@@ -87,4 +87,4 @@ class Task{
         };
     }
 }
-export { Task, Priority };
+export { Task };

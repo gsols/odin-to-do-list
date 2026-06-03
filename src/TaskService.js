@@ -1,9 +1,19 @@
 import { Priority } from "./Priority.js";
 import { TaskFactory } from "./TaskFactory";
+import * as Storage from "./Storage.js";
 
 class TaskService {
     constructor(initialTasks = []) {
         this.tasks = initialTasks;
+        this.STORAGE_KEY = "tasks";
+    }
+
+    loadFromLocalStorage() {
+        this.tasks = Storage.loadList(this.STORAGE_KEY, TaskFactory);
+    }
+
+    saveToLocalStorage() {
+        Storage.saveList(this.STORAGE_KEY, this.tasks);
     }
 
     addTask(title, description, dueDate, time, priority) {

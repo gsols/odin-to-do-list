@@ -1,9 +1,19 @@
 import { ProjectFactory } from "./ProjectFactory.js";
 import { SectionFactory } from "./SectionFactory.js";
+import * as Storage from "./Storage.js";
 
 class ProjectService {
     constructor(initialProjects = []) {
         this.projects = initialProjects;
+        this.STORAGE_KEY = "projects";
+    }
+
+    loadFromLocalStorage() {
+        this.projects = Storage.loadList(this.STORAGE_KEY, ProjectFactory);
+    }
+
+    saveToLocalStorage() {
+        Storage.saveList(this.STORAGE_KEY, this.projects);
     }
 
     addProject(name) {
