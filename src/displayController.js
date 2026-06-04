@@ -24,7 +24,7 @@ function renderProjects(projectService, projectsList) {
     projects.forEach(p => {
         const el = document.createElement('div');
         el.className = 'project-item';
-        el.textContent = p.getName?.() ?? p.name;
+        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg> ${p.getName?.() ?? p.name}`;
         el.style.cursor = 'pointer';
         el.addEventListener('click', () => renderProjectView(p));
         projectsList.appendChild(el);
@@ -172,7 +172,7 @@ function showTodayTasks(taskService, content) {
 }
 
 function createNewProject(projectService, projectsList) {
-    const newProjectInput = document.createElement('div');
+    const newProjectInput = document.createElement('form');
     const input = document.createElement('input');
     const submit = document.createElement('button');
     const cancel = document.createElement('button');
@@ -181,20 +181,35 @@ function createNewProject(projectService, projectsList) {
     submit.textContent = `Add`;
     cancel.classList.add('new-project-cancel-btn');
     cancel.textContent = 'Cancel';
-    projectsList.prepend(newProjectInput);
+    projectsList.appendChild(newProjectInput);
     newProjectInput.appendChild(input);
     newProjectInput.appendChild(cancel);
     newProjectInput.appendChild(submit);
     input.focus();
+    input.required = true;
 
+    cancel.type = 'button';
     cancel.addEventListener('click', () => newProjectInput.remove());
-    submit.addEventListener('click', () => {
+    // ensure the button is explicitly a non-form button (avoid unexpected submit behavior)
+    submit.type = 'submit';
+    newProjectInput.addEventListener('submit', (e) => {
+        e.preventDefault();
         const name = input.value;
         if (name?.trim()) {
             projectService.addProject(name.trim());
         }
         newProjectInput.remove();
         renderProjects(projectService, projectsList);
+    });
+
+    // listen on the text input for Enter (and Escape to cancel) — keydown on the button
+    // won't fire when the input has focus, so this ensures Enter works as expected.
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            submit.click();
+        } else if (e.key === 'Escape') {
+            cancel.click();
+        }
     });
 }
 

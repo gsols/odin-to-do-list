@@ -7,18 +7,20 @@
 body {
   display: flex;
   flex-direction: row;
-  ;
+  height: 100vh;
+  font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif ;
 }
 
 
 .side-bar {
-  width: 250px; /* Fixed width for the sidebar */
+  min-width: 250px; /* Fixed width for the sidebar */
   height: 100vh; /* Full viewport height */
   background-color: #f4f4f4; /* Light gray background */
   display: flex;
   flex-direction: column; /* Stack children vertically */
   align-items: flex-start; /* Align children to the start (left) */
   padding: 20px 0 0 20px; /* Add some padding around the content */
+  overflow: hidden;;
 }
 
 .side-bar .header {
@@ -39,6 +41,7 @@ body {
 }
 
 .projects-div {
+  min-height: 0px;
   margin-top: 30px; /* Space above the projects section */
   width: 100%; /* Make projects div take full width of sidebar */
 }
@@ -76,8 +79,18 @@ body {
   background-color: #ddd; /* Light gray background on hover */
 }
 
+.project-list {
+  flex: 1 1 auto;
+  min-height: 0px;
+  overflow-y: auto;
+}
+
 #content {
   padding: 50px;
+  width: 1000px;
+  min-width: 300px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 dialog {
@@ -184,5 +197,22 @@ dialog button {
   border: 1px solid #ccc;
   padding: 8px;
   width: 100%;
+}
+
+.project-item {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.project-item svg {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+.project-item:hover {
+  background-color: #ddd; /* Light gray background on hover */
+
 }
 
