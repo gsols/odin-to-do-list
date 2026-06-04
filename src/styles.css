@@ -283,3 +283,20 @@ dialog button {
 .task-item:last-child {
   border-bottom: none;
 }
+
+.delete-task-btn  {
+  margin-left: auto;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-task-btn svg {
+  width: 16px;
+  height: 16px;
+}

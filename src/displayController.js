@@ -176,6 +176,19 @@ function renderTaskItem(task, taskService, refreshCallback) {
     });
     row.appendChild(cb);
     row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title));
+
+        const deleteBtn = document.createElement('button');
+    deleteBtn.classList.add('delete-task-btn');
+    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>delete</title><path d="M6,19A2,2,0,0,0,8,21H16a2,2,0,0,0,2-2V7H6ZM19,4H15.5l-1-1h-4l-1,1H5V6H19Z" /></svg>`;
+    deleteBtn.addEventListener('click', () => {
+        taskService.removeTask?.(task.getId?.() ?? task.id);
+        if (typeof refreshCallback === 'function') {
+            refreshCallback();
+        }
+        
+    });
+    row.appendChild(deleteBtn);
+
     return row;
 }
 
