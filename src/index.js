@@ -16,14 +16,15 @@ function reconcileTaskProjectIds(taskService, projectService) {
 		const tasks = project.getTasks?.() ?? project.tasks ?? [];
 
 		tasks.forEach(projectTask => {
-			const taskId = projectTask.getId?.() ?? projectTask.id;
+			// projectTask may be a task id (string) or a task object; normalize to id
+			const taskId = (typeof projectTask === 'string') ? projectTask : (projectTask.getId?.() ?? projectTask.id);
 			const task = taskService.getTaskById(taskId);
 			if (!task) return;
 
 			const taskProjectId = task.getProjectId?.() ?? task.projectId;
 			if (taskProjectId !== projectId) {
-				task.setProjectId?.(projectId);
-				if (!task.setProjectId) task.projectId = projectId;
+				if (typeof task.setProjectId === 'function') task.setProjectId(projectId);
+				else task.projectId = projectId;
 				changed = true;
 			}
 		});

@@ -154,15 +154,23 @@ dialog button {
   align-items: center;
 }
 
-.add-project-button{
+#add-project-btn{
   cursor: pointer;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  margin-right: 24px;
+  display: flex;
+  align-items: center;
+  border: none;
+  background-color: transparent;
+  justify-content: center;
 }
 
-.new-project-submit-btn svg {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
+#add-project-btn:hover{
+  background-color: #b4b4b4;
 }
+
 
 .new-project-input{
   margin-right: 24px;
@@ -180,6 +188,7 @@ dialog button {
   border: none;
   border-radius: 4px;
 }
+
 
 .new-project-submit-btn{
   background-color: green;

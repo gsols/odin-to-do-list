@@ -17,7 +17,12 @@ class ProjectFactory {
         const project = new Project(name);
         if (id !== undefined) project.id = id;
         project.tasks = Array.isArray(tasks)
-            ? tasks.map(t => (TaskFactory?.fromJSON ? TaskFactory.fromJSON(t) : t))
+            ? tasks.map(t => {
+                // if tasks were saved as full objects, revive and use their id; if already ids, keep them
+                if (typeof t === 'string') return t;
+                const revived = (TaskFactory?.fromJSON ? TaskFactory.fromJSON(t) : t);
+                return revived?.getId?.() ?? revived?.id ?? null;
+            }).filter(Boolean)
             : [];
         project.sections = Array.isArray(sections)
             ? sections.map(s => SectionFactory.fromJSON(s))

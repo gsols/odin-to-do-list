@@ -33,8 +33,11 @@ class TaskService {
 
     toggleTaskDone(id) {
         const task = this.getTaskById(id);
+        console.log('TaskService.toggleTaskDone called for id=', id, 'found=', !!task);
         if (task) {
+            console.log(' - before done=', task.getDone?.() ?? task.done);
             task.toggleDone();
+            console.log(' - after done=', task.getDone?.() ?? task.done);
             this.saveToLocalStorage();
             return task;
         }

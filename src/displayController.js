@@ -18,7 +18,7 @@ function createElementsIfNeeded() {
     return { projectsList: list, content };
 }
 
-function renderProjects(projectService, projectsList) {
+function renderProjects(projectService, projectsList, taskService) {
     projectsList.innerHTML = '';
     const projects = projectService.getProjects();
     projects.forEach(p => {
@@ -35,28 +35,20 @@ function renderProjects(projectService, projectsList) {
         const content = document.getElementById('content');
         content.innerHTML = `<h2>${project.getName?.() ?? project.name}</h2>`;
         const wrapper = document.createElement('div');
-        const tasks = project.getTasks?.() ?? project.tasks ?? [];
+        const projId = project.getId?.() ?? project.id;
+        const tasks = (taskService && typeof taskService.getTasks === 'function')
+            ? taskService.getTasks().filter(t => {
+                const pid = (typeof t.getProjectId === 'function') ? t.getProjectId() : t.projectId;
+                return pid == projId && !(t.getDone?.() || t.done);
+            })
+            : (project.getTasks?.() ?? project.tasks ?? []);
         if (tasks.length === 0) wrapper.textContent = 'No tasks in this project.';
         tasks.forEach(t => {
             
-            console.log(t.getDone?.());
-            const row = document.createElement('div');
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.checked = !!(t.getDone?.() ?? t.done);
-            cb.addEventListener('change', () => {
-                // toggle via global taskService (look up by id)
-                const globalTaskService = window.__taskService;
-                if (globalTaskService) {
-                    globalTaskService.toggleTaskDone(t.getId?.() ?? t.id);
-                }
-                renderProjectView(project);
-            });
-            row.appendChild(cb);
-            const title = document.createElement('span');
-            title.textContent = t.getTitle?.() ?? t.title;
-            row.appendChild(title);
-            wrapper.appendChild(row);
+            console.log('renderProjectView:', { id: t.getId?.() ?? t.id, done: t.getDone?.() ?? t.done, projectId: t.getProjectId?.() ?? t.projectId });
+            renderTaskItem(t, taskService, () => renderProjectView(project));
+
+            wrapper.appendChild(renderTaskItem(t, taskService, () => renderProjectView(project)));
         });
         content.appendChild(wrapper);
     }
@@ -251,12 +243,13 @@ function createNewProject(projectService, projectsList) {
             cancel.click();
         }
     });
+
+
 }
 
 
 function initDisplay(taskService, projectService) {
-    // expose taskService for inner handlers that need it when rendering project views
-    window.__taskService = taskService;
+    // use explicit taskService parameter instead of storing a global on window
 
     const { projectsList, content } = createElementsIfNeeded();
 
@@ -281,6 +274,7 @@ function initDisplay(taskService, projectService) {
     
     const addProjectBtn = document.getElementById('add-project-btn');
     addProjectBtn.classList.add('add-project-btn');
+    addProjectBtn.type = 'button';
 
     addProjectBtn.addEventListener('click', () => {
         createNewProject(projectService, projectsList);
@@ -288,10 +282,10 @@ function initDisplay(taskService, projectService) {
 
     // render initial lists
     showLonelyTasks(taskService, content);
-    renderProjects(projectService, projectsList);
+    renderProjects(projectService, projectsList, taskService);
 
     // refresh projects list when tasks change (simple event)
-    projectsList.addEventListener('refresh', () => renderProjects(projectService, projectsList));
+    projectsList.addEventListener('refresh', () => renderProjects(projectService, projectsList, taskService));
 }
 
 export default initDisplay;

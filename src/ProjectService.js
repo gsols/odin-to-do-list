@@ -90,8 +90,10 @@ class ProjectService {
         if (!project) {
             return null;
         }
-        project.addTask(task);
-        task.setProjectId(projectId);
+        // accept task object or id
+        const taskId = (typeof task === 'string') ? task : (task.getId?.() ?? task.id);
+        project.addTask(taskId);
+        if (typeof task?.setProjectId === 'function') task.setProjectId(projectId);
         this.saveToLocalStorage();
         return task;
     }
@@ -102,7 +104,7 @@ class ProjectService {
             return null;
         }
         project.removeTask(taskId);
-        task.setProjectId(null);
+        if (task && typeof task.setProjectId === 'function') task.setProjectId(null);
         this.saveToLocalStorage();
         return true;
     }

@@ -2,6 +2,7 @@ class Project {
     constructor(name){
         this.id = crypto.randomUUID();
         this.name = name;
+        // store task ids only to avoid duplicate task objects
         this.tasks = [];
         this.sections = [];
     }
@@ -26,8 +27,11 @@ class Project {
         this.name = name;
     }
 
-    addTask(task){
-        this.tasks.push(task);
+    addTask(taskOrId){
+        // accept either a Task object or a task id string
+        if (!taskOrId) return;
+        const id = (typeof taskOrId === 'string') ? taskOrId : (taskOrId.getId?.() ?? taskOrId.id);
+        if (!this.tasks.includes(id)) this.tasks.push(id);
     }
 
     addSection(section){
@@ -35,7 +39,7 @@ class Project {
     }
 
     removeTask(taskId){
-        this.tasks = this.tasks.filter(task => task.getId() !== taskId);
+        this.tasks = this.tasks.filter(id => id !== taskId);
     }
 
     removeSection(sectionId){
@@ -46,7 +50,8 @@ class Project {
         return {
             id: this.id,
             name: this.name,
-            tasks: this.tasks.map(task => task.toJSON()),
+            // tasks are stored as ids
+            tasks: this.tasks.slice(),
             sections: this.sections.map(section => section.toJSON())
         };
     }
