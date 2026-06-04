@@ -154,12 +154,48 @@ function showLonelyTasks(taskService, content) {
     content.appendChild(list);
 }
 
-function showAddProjectForm(projectService, projectsList) {
-    const name = prompt('Enter project name:');
-    if (name?.trim()) {
-        projectService.addProject(name.trim());
+function showTodayTasks(taskService, content) {
+    content.innerHTML = '<h1>Today</h1>';
+    const list = document.createElement('div');
+    const today = new Date().toISOString().slice(0,10);
+    const tasks = taskService.getTasks().filter(t => (t.dueDate === today));
+    if (tasks.length === 0) list.textContent = 'No tasks for today.';
+    tasks.forEach(t => {
+        const row = document.createElement('div');
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
+        cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); showTodayTasks(taskService, content); });
+        row.appendChild(cb);
+        row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));
+        list.appendChild(row);
+    });
+    content.appendChild(list);
+}
+
+function createNewProject(projectService, projectsList) {
+    const newProjectInput = document.createElement('div');
+    const input = document.createElement('input');
+    const submit = document.createElement('button');
+    const cancel = document.createElement('button');
+    newProjectInput.classList.add('new-project-input');
+    submit.classList.add('new-project-submit-btn');
+    submit.textContent = `Add`;
+    cancel.classList.add('new-project-cancel-btn');
+    cancel.textContent = 'Cancel';
+    projectsList.prepend(newProjectInput);
+    newProjectInput.appendChild(input);
+    newProjectInput.appendChild(cancel);
+    newProjectInput.appendChild(submit);
+    input.focus();
+
+    cancel.addEventListener('click', () => newProjectInput.remove());
+    submit.addEventListener('click', () => {
+        const name = input.value;
+        if (name?.trim()) {
+            projectService.addProject(name.trim());
+        }
+        newProjectInput.remove();
         renderProjects(projectService, projectsList);
-    }
+    });
 }
 
 
@@ -180,35 +216,17 @@ function initDisplay(taskService, projectService) {
             showLonelyTasks(taskService, content);
         });
         // third - today (simple filter by dueDate===today)
-        if (children[2]) children[2].addEventListener('click', () => {
-            content.innerHTML = '<h2>Today</h2>';
-            const list = document.createElement('div');
-            const today = new Date().toISOString().slice(0,10);
-            const tasks = taskService.getTasks().filter(t => (t.dueDate === today));
-            if (tasks.length === 0) list.textContent = 'No tasks for today.';
-            tasks.forEach(t => {
-                const row = document.createElement('div');
-                const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
-                cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); initDisplay(taskService, projectService); });
-                row.appendChild(cb);
-                row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));
-                list.appendChild(row);
-            });
-            content.appendChild(list);
+        if (children[2]) children[2].addEventListener('click', () => { 
+            showTodayTasks(taskService, content);
         });
     }
-
+    
     const addProjectBtn = document.getElementById('add-project-btn');
-    if (addProjectBtn) {
-        addProjectBtn.style.cursor = 'pointer';
-        addProjectBtn.addEventListener('click', () => {
-            const name = prompt('Enter project name:');
-            if (name?.trim()) {
-                projectService.addProject(name.trim());
-                renderProjects(projectService, projectsList);
-            }
-        });
-    }
+    addProjectBtn.classList.add('add-project-btn');
+
+    addProjectBtn.addEventListener('click', () => {
+        createNewProject(projectService, projectsList);
+    });
 
     // render initial lists
     showLonelyTasks(taskService, content);

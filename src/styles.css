@@ -130,3 +130,59 @@ dialog button {
   justify-content: space-between;
   align-items: center;
 }
+
+.add-project-button{
+  cursor: pointer;
+}
+
+.new-project-submit-btn svg {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.new-project-input{
+  margin-right: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.new-project-input button {
+  border-radius: 2px;
+  height: fit-content;
+  font-size: 20px;
+  flex: 1;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+}
+
+.new-project-submit-btn{
+  background-color: green;
+  color: white;
+}
+
+.new-project-cancel-btn{
+  background-color: grey;
+  color: white;
+}
+
+.new-project-submit-btn:hover{
+  background-color: rgb(2, 100, 2);
+  color: white;
+  cursor: pointer;
+}
+
+.new-project-cancel-btn:hover{
+  background-color: rgb(102, 101, 101);
+  color: white;
+  cursor: pointer;
+}
+
+.new-project-input input {
+  border: 1px solid #ccc;
+  padding: 8px;
+  width: 100%;
+}
+
