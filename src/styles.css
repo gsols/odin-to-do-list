@@ -95,8 +95,9 @@ body {
 
 
 #content {
-  padding: 50px;
-  width: 1000px;
+  padding: 0 36px;
+  padding-top: 100px;
+  width: 1200px;
   min-width: 300px;
   margin-right: auto;
   margin-left: auto;
@@ -246,7 +247,7 @@ dialog button {
 
 
 /* Lonely Tasks Page */
-.lonely-task-item {
+.task-item {
   display: flex;
   align-items: center;
   padding: 8px;
@@ -267,9 +268,9 @@ dialog button {
 }
 
 
-.lonely-task-item:first-child {
+.task-item:first-child {
   margin-top: 16px;
 }
-.lonely-task-item:last-child {
+.task-item:last-child {
   border-bottom: none;
 }

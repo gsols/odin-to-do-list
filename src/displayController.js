@@ -152,7 +152,7 @@ function showLonelyTasks(taskService, content) {
 
 function renderTaskItem(task, taskService, refreshCallback) {
     const row = document.createElement('div');
-    row.classList.add('lonely-task-item');
+    row.classList.add('task-item');
     const circleCb = document.createElement('label');
     circleCb.classList.add('circle-checkbox');
     const cb = document.createElement('input'); 
