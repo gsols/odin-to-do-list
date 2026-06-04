@@ -128,6 +128,7 @@ function showAddTaskForm(taskService, projectService, content) {
         } catch (err) {
             alert(err.message || 'Failed to create task');
         }
+        showLonelyTasks(taskService, content); // refresh view (could be smarter and only refresh if added to current view)
         addTaskDialog.close();
     });
 
@@ -141,45 +142,61 @@ function showLonelyTasks(taskService, content) {
     content.innerHTML = '<h1>Lonely Tasks</h1>';
     content.classList.add('lonely-tasks-view');
     const list = document.createElement('div');
-    const tasks = taskService.getTasks().filter(t => !t.parentId && !(t.projectId));
-    if (tasks.length === 0) list.textContent = 'No lonely tasks.';
+    const tasks = taskService.getTasks().filter(t => !t.getDone?.() && !t.done);
+    if (tasks.length === 0) list.textContent = 'No lonely tasks. Great job!';
     tasks.forEach(t => {
-        const row = document.createElement('div');
-        row.classList.add('lonely-task-item');
-        const circleCb = document.createElement('label');
-        circleCb.classList.add('circle-checkbox');
-        const cb = document.createElement('input'); 
-        const checkmark = document.createElement('span');
-        checkmark.classList.add('checkmark');
-        circleCb.appendChild(cb);
-        circleCb.appendChild(checkmark);
-        cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
-        const check = document.createElement('span');
-        cb.appendChild(check);
-        cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); showLonelyTasks(taskService, content); });
-        row.appendChild(cb);
-        row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));
-        list.appendChild(row);
+        list.appendChild(renderTaskItem(t, taskService, () => showLonelyTasks(taskService, content)));
     });
     content.appendChild(list);
+}
+
+function renderTaskItem(task, taskService, refreshCallback) {
+    const row = document.createElement('div');
+    row.classList.add('lonely-task-item');
+    const circleCb = document.createElement('label');
+    circleCb.classList.add('circle-checkbox');
+    const cb = document.createElement('input'); 
+    const checkmark = document.createElement('span');
+    checkmark.classList.add('checkmark');
+    circleCb.appendChild(cb);
+    circleCb.appendChild(checkmark);
+    cb.type = 'checkbox'; cb.checked = !!(task.getDone?.() ?? task.done);
+    const check = document.createElement('span');
+    cb.appendChild(check);
+    cb.addEventListener('change', () => { 
+        taskService.toggleTaskDone(task.getId?.() ?? task.id); 
+        if (typeof refreshCallback === 'function') {
+            refreshCallback();
+        }
+    });
+    row.appendChild(cb);
+    row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title));
+    return row;
 }
 
 function showTodayTasks(taskService, content) {
     content.innerHTML = '<h1>Today</h1>';
     const list = document.createElement('div');
     const today = new Date().toISOString().slice(0,10);
-    const tasks = taskService.getTasks().filter(t => (t.dueDate === today));
+    const tasks = taskService.getTasks().filter(t => (t.dueDate === today) && !(t.getDone?.() || t.done));
     if (tasks.length === 0) list.textContent = 'No tasks for today.';
     tasks.forEach(t => {
-        const row = document.createElement('div');
-        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
-        cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); showTodayTasks(taskService, content); });
-        row.appendChild(cb);
-        row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));
-        list.appendChild(row);
+        const render = renderTaskItem(t, taskService, () => showTodayTasks(taskService, content));
+        list.appendChild(render);
     });
     content.appendChild(list);
 }
+
+function showcompletedTasks(taskService, content) {
+    content.innerHTML = '<h1>Completed Tasks</h1>';
+    const list = document.createElement('div');
+    const tasks = taskService.getTasks().filter(t => t.getDone?.() || t.done);
+    if (tasks.length === 0) list.textContent = 'No completed tasks yet.';
+    tasks.forEach(t => {
+        list.appendChild(renderTaskItem(t, taskService, () => showcompletedTasks(taskService, content)));
+    });
+    content.appendChild(list);
+}   
 
 function createNewProject(projectService, projectsList) {
     const newProjectInput = document.createElement('form');
@@ -243,6 +260,9 @@ function initDisplay(taskService, projectService) {
         // third - today (simple filter by dueDate===today)
         if (children[2]) children[2].addEventListener('click', () => { 
             showTodayTasks(taskService, content);
+        });
+        if (children[3]) children[3].addEventListener('click', () => {
+            showcompletedTasks(taskService, content);
         });
     }
     
