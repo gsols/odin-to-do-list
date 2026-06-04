@@ -93,12 +93,11 @@ function renderTasks(taskService, content) {
     content.appendChild(list);
 }
 
-function showAddTaskForm(taskService, content) {
+function showAddTaskForm(taskService, projectService, content) {
     content.innerHTML = '<h2>Add Task</h2>';
+    const addTaskDialog = document.createElement('dialog');
     const form = document.createElement('form');
-    form.style.display = 'grid';
-    form.style.gridTemplateColumns = '1fr';
-    form.style.gap = '8px';
+    addTaskDialog.appendChild(form);
 
     const titleInput = document.createElement('input');
     titleInput.placeholder = 'Title';
@@ -115,28 +114,78 @@ function showAddTaskForm(taskService, content) {
         priority.appendChild(o);
     });
 
+    const projectSelect = document.createElement('select');
+    projectSelect.classList.add('project-select');
+    const defaultOption = document.createElement('option');
+    defaultOption.textContent = 'Lonely Tasks';
+    defaultOption.value = 'lonely-tasks';
+    projectSelect.appendChild(defaultOption);
+    const projects = projectService.getProjects?.() ?? [];
+    projects.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.getId?.() ?? p.id;
+        o.textContent = p.getName?.() ?? p.name;
+        projectSelect.appendChild(o);
+    });
+
+
+    const actionDiv = document.createElement('div');
+    actionDiv.classList.add('form-actions');
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', () => addTaskDialog.close());
     const submit = document.createElement('button');
     submit.type = 'submit';
     submit.textContent = 'Create';
+
+    const lastRow = document.createElement('div');
+    lastRow.classList.add('form-last-row');
 
     form.appendChild(titleInput);
     form.appendChild(desc);
     form.appendChild(due);
     form.appendChild(time);
     form.appendChild(priority);
-    form.appendChild(submit);
+    form.appendChild(lastRow);
+    lastRow.appendChild(projectSelect);
+    actionDiv.appendChild(cancel);
+    actionDiv.appendChild(submit);
+    lastRow.appendChild(actionDiv);
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         try {
             taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null);
             renderTasks(taskService, content);
+            addTaskDialog.close();
         } catch (err) {
             alert(err.message || 'Failed to create task');
         }
     });
 
-    content.appendChild(form);
+
+    document.body.appendChild(addTaskDialog);
+    addTaskDialog.showModal();
+}
+
+
+function showLonelyTasks(taskService, content) {
+    content.innerHTML = '<h1>Lonely Tasks</h1>';
+    content.classList.add('lonely-tasks-view');
+    const list = document.createElement('div');
+    const tasks = taskService.getTasks().filter(t => !t.parentId && !(t.projectId));
+    if (tasks.length === 0) list.textContent = 'No lonely tasks.';
+    tasks.forEach(t => {
+        const row = document.createElement('div');
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
+        cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); showLonelyTasks(taskService, content); });
+        row.appendChild(cb);
+        row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));
+        list.appendChild(row);
+    });
+    content.appendChild(list);
 }
 
 function showAddProjectForm(projectService, projectsList) {
@@ -158,7 +207,7 @@ function initDisplay(taskService, projectService) {
     if (sideNav) {
         const children = sideNav.querySelectorAll('div');
         // first div is Add Task
-        if (children[0]) children[0].addEventListener('click', () => showAddTaskForm(taskService, content));
+        if (children[0]) children[0].addEventListener('click', () => showAddTaskForm(taskService, projectService, content));
         // second - lonely tasks
         if (children[1]) children[1].addEventListener('click', () => {
             content.innerHTML = '<h2>Lonely Tasks</h2>';

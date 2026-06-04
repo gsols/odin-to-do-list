@@ -8,6 +8,7 @@ class Task{
         this.priority = priority;
         this.done = false;
         this.subtasks = [];
+        this.projectId = null; 
     }
 
     setTitle(title){

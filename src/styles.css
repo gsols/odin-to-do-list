@@ -4,6 +4,12 @@
   padding: 0;             /* Removes default inner padding on lists and containers */
 }
 
+body {
+  display: flex;
+  flex-direction: row;
+  ;
+}
+
 
 .side-bar {
   width: 250px; /* Fixed width for the sidebar */
@@ -68,4 +74,59 @@
 
 .projects-div span:hover {
   background-color: #ddd; /* Light gray background on hover */
+}
+
+#content {
+  padding: 50px;
+}
+
+dialog {
+  margin-top: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  border: none;
+  width: 550px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+dialog input, dialog select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+dialog button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.project-select {
+  width: fit-content;
+  margin-top: auto;
+  margin-bottom: auto;
+  border: none;
+  background-color: transparent;
+}
+
+.form-last-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
