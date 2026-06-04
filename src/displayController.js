@@ -38,6 +38,8 @@ function renderProjects(projectService, projectsList) {
         const tasks = project.getTasks?.() ?? project.tasks ?? [];
         if (tasks.length === 0) wrapper.textContent = 'No tasks in this project.';
         tasks.forEach(t => {
+            
+            console.log(t.getDone?.());
             const row = document.createElement('div');
             const cb = document.createElement('input');
             cb.type = 'checkbox';
@@ -59,6 +61,8 @@ function renderProjects(projectService, projectsList) {
         content.appendChild(wrapper);
     }
 }
+
+
 
 
 function showAddTaskForm(taskService, projectService, content) {
@@ -124,7 +128,11 @@ function showAddTaskForm(taskService, projectService, content) {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         try {
-            taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null, projectSelect.value === 'lonely-tasks' ? null : projectSelect.value);
+            const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
+            const task = taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null, projectId);
+            if (projectId) {
+                projectService.addTaskToProject?.(projectId, task);
+            }
         } catch (err) {
             alert(err.message || 'Failed to create task');
         }
@@ -142,9 +150,14 @@ function showLonelyTasks(taskService, content) {
     content.innerHTML = '<h1>Lonely Tasks</h1>';
     content.classList.add('lonely-tasks-view');
     const list = document.createElement('div');
-    const tasks = taskService.getTasks().filter(t => !t.getDone?.() && !t.done);
+        const tasks = taskService.getTasks().filter(t => {
+            const done = t.getDone?.() ?? t.done;
+            const projectId = (typeof t.getProjectId === 'function') ? t.getProjectId() : t.projectId;
+            return !done && (projectId == null);
+        });
     if (tasks.length === 0) list.textContent = 'No lonely tasks. Great job!';
     tasks.forEach(t => {
+        console.log(t.getProjectId?.());
         list.appendChild(renderTaskItem(t, taskService, () => showLonelyTasks(taskService, content)));
     });
     content.appendChild(list);

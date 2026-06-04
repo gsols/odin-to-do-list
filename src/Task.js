@@ -75,6 +75,14 @@ class Task{
         this.subtasks = this.subtasks.filter(subtask => subtask.getId() !== subtaskId);
     }
 
+    getProjectId() {
+        return this.projectId;
+    }
+
+    setProjectId(projectId) {
+        this.projectId = projectId;
+    }
+
     toJSON(){
         return {
             id: this.id,
@@ -84,6 +92,7 @@ class Task{
             time: this.time,
             priority: this.priority,
             done: this.done,
+            projectId: this.projectId,
             subtasks: this.subtasks.map(subtask => subtask.toJSON())
         };
     }

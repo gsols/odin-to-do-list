@@ -91,16 +91,18 @@ class ProjectService {
             return null;
         }
         project.addTask(task);
+        task.setProjectId(projectId);
         this.saveToLocalStorage();
         return task;
     }
 
-    removeTaskFromProject(projectId, taskId) {
+    removeTaskFromProject(projectId, taskId, task) {
         const project = this.getProjectById(projectId);
         if (!project) {
             return null;
         }
         project.removeTask(taskId);
+        task.setProjectId(null);
         this.saveToLocalStorage();
         return true;
     }

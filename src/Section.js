@@ -1,7 +1,8 @@
 class Section {
-    constructor(name){
+    constructor(name, projectId){
         this.id = crypto.randomUUID();
         this.name = name;
+        this.projectId;
         this.tasks = [];
     }
 
@@ -13,10 +14,19 @@ class Section {
         return this.name;
     }
 
+    getProjectId(){
+        return this.projectId;
+    }
+
+    
     getTasks(){
         return this.tasks;
     }
 
+    setProjectId(projectId){
+        this.projectId = projectId;
+    }
+    
     setName(name){
         this.name = name;
     }
