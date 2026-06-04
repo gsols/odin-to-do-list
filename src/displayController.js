@@ -60,41 +60,8 @@ function renderProjects(projectService, projectsList) {
     }
 }
 
-function renderTasks(taskService, content) {
-    content.innerHTML = '<h2>All Tasks</h2>';
-    const list = document.createElement('div');
-    const tasks = taskService.getTasks();
-    if (tasks.length === 0) list.textContent = 'No tasks yet.';
-    tasks.forEach(task => {
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.gap = '8px';
-        row.style.padding = '6px 0';
-
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = !!(task.getDone?.() ?? task.done);
-        cb.addEventListener('change', () => {
-            taskService.toggleTaskDone(task.getId?.() ?? task.id);
-            renderTasks(taskService, content);
-            // also re-render projects list state if needed
-            const projectsList = document.querySelector('.projects-list');
-            if (projectsList) projectsList.dispatchEvent(new Event('refresh'));
-        });
-
-        const title = document.createElement('span');
-        title.textContent = task.getTitle?.() ?? task.title;
-        if (cb.checked) title.style.textDecoration = 'line-through';
-
-        row.appendChild(cb);
-        row.appendChild(title);
-        list.appendChild(row);
-    });
-    content.appendChild(list);
-}
 
 function showAddTaskForm(taskService, projectService, content) {
-    content.innerHTML = '<h2>Add Task</h2>';
     const addTaskDialog = document.createElement('dialog');
     const form = document.createElement('form');
     addTaskDialog.appendChild(form);
@@ -157,12 +124,11 @@ function showAddTaskForm(taskService, projectService, content) {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         try {
-            taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null);
-            renderTasks(taskService, content);
-            addTaskDialog.close();
+            taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null, projectSelect.value === 'lonely-tasks' ? null : projectSelect.value);
         } catch (err) {
             alert(err.message || 'Failed to create task');
         }
+        addTaskDialog.close();
     });
 
 
@@ -196,6 +162,7 @@ function showAddProjectForm(projectService, projectsList) {
     }
 }
 
+
 function initDisplay(taskService, projectService) {
     // expose taskService for inner handlers that need it when rendering project views
     window.__taskService = taskService;
@@ -210,19 +177,7 @@ function initDisplay(taskService, projectService) {
         if (children[0]) children[0].addEventListener('click', () => showAddTaskForm(taskService, projectService, content));
         // second - lonely tasks
         if (children[1]) children[1].addEventListener('click', () => {
-            content.innerHTML = '<h2>Lonely Tasks</h2>';
-            const list = document.createElement('div');
-            const tasks = taskService.getTasks().filter(t => !t.parentId && !(t.projectId));
-            if (tasks.length === 0) list.textContent = 'No lonely tasks.';
-            tasks.forEach(t => {
-                const row = document.createElement('div');
-                const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
-                cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); initDisplay(taskService, projectService); });
-                row.appendChild(cb);
-                row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));
-                list.appendChild(row);
-            });
-            content.appendChild(list);
+            showLonelyTasks(taskService, content);
         });
         // third - today (simple filter by dueDate===today)
         if (children[2]) children[2].addEventListener('click', () => {
@@ -256,8 +211,8 @@ function initDisplay(taskService, projectService) {
     }
 
     // render initial lists
+    showLonelyTasks(taskService, content);
     renderProjects(projectService, projectsList);
-    renderTasks(taskService, content);
 
     // refresh projects list when tasks change (simple event)
     projectsList.addEventListener('refresh', () => renderProjects(projectService, projectsList));
