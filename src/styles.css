@@ -49,3 +49,23 @@
   height: 24px; /* Set height of the SVG icon */
   margin-right: 8px;
 }
+
+.projects-div .header {
+  display: flex;
+  align-items: center; /* Center items vertically */
+  justify-content: space-between;
+}
+
+.projects-div span {
+  width: 24px;
+  height: 24px;
+  margin-right: 24px;
+  cursor: pointer;
+  width: 28px; /* Set width of the SVG icon */
+  height: 28px; /* Set height of the SVG icon */
+  border-radius: 14px;
+}
+
+.projects-div span:hover {
+  background-color: #ddd; /* Light gray background on hover */
+}
