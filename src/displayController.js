@@ -145,7 +145,17 @@ function showLonelyTasks(taskService, content) {
     if (tasks.length === 0) list.textContent = 'No lonely tasks.';
     tasks.forEach(t => {
         const row = document.createElement('div');
-        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
+        row.classList.add('lonely-task-item');
+        const circleCb = document.createElement('label');
+        circleCb.classList.add('circle-checkbox');
+        const cb = document.createElement('input'); 
+        const checkmark = document.createElement('span');
+        checkmark.classList.add('checkmark');
+        circleCb.appendChild(cb);
+        circleCb.appendChild(checkmark);
+        cb.type = 'checkbox'; cb.checked = !!(t.getDone?.() ?? t.done);
+        const check = document.createElement('span');
+        cb.appendChild(check);
         cb.addEventListener('change', () => { taskService.toggleTaskDone(t.getId?.() ?? t.id); showLonelyTasks(taskService, content); });
         row.appendChild(cb);
         row.appendChild(document.createTextNode(t.getTitle?.() ?? t.title));

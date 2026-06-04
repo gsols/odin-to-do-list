@@ -13,7 +13,7 @@ body {
 
 
 .side-bar {
-  min-width: 250px; /* Fixed width for the sidebar */
+  min-width: 280px;width: 300px; /* Fixed width for the sidebar */
   height: 100vh; /* Full viewport height */
   background-color: #f4f4f4; /* Light gray background */
   display: flex;
@@ -44,6 +44,8 @@ body {
   min-height: 0px;
   margin-top: 30px; /* Space above the projects section */
   width: 100%; /* Make projects div take full width of sidebar */
+  display: flex;
+  flex-direction: column; /* allow header + list to stack and let list scroll */
 }
 
 .side-nav div {
@@ -79,11 +81,18 @@ body {
   background-color: #ddd; /* Light gray background on hover */
 }
 
-.project-list {
-  flex: 1 1 auto;
-  min-height: 0px;
+.projects-list {
+  flex: 1 1 auto; /* take remaining space in the projects-div */
+  min-height: 0;   /* allow it to shrink inside flex container */
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+  
 }
+
+.projects-list::-webkit-scrollbar { width: 8px; }
+.projects-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+
 
 #content {
   padding: 50px;
@@ -199,6 +208,25 @@ dialog button {
   width: 100%;
 }
 
+.new-project-input input.invalid {
+  border: 1px solid #d9534f;
+  box-shadow: 0 0 0 3px rgba(217,83,79,0.12);
+}
+.new-project-invalid-msg {
+  color: #d9534f;
+  font-size: 0.9rem;
+  margin-top: 4px;
+  display: none;
+}
+@keyframes _proj_shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+ 100% { transform: translateX(0); }
+}
+.proj-shake { animation: _proj_shake 300ms ease; }
+
 .project-item {
   padding: 8px;
   display: flex;
@@ -216,3 +244,32 @@ dialog button {
 
 }
 
+
+/* Lonely Tasks Page */
+.lonely-task-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-bottom: #f1f1f1 0.1px solid;
+  font-size: 18px;
+}
+
+.lonely-tasks-view input[type="checkbox"] {
+  margin-right: 12px;
+}
+
+.circle-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+
+.lonely-task-item:first-child {
+  margin-top: 16px;
+}
+.lonely-task-item:last-child {
+  border-bottom: none;
+}
