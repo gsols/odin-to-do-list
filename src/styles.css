@@ -408,8 +408,26 @@ dialog button {
   gap: 8px;
 }
 
-p[contenteditable]:empty:not(:focus)::before {
-    content: attr(data-placeholder);
-    color: #888888; /* Change to your preferred placeholder color */
-    font-style: italic; /* Usually styled like standard placeholder text */
+/* Show placeholder text for empty contenteditable <p> at all times.
+   Use pointer-events:none so clicks go through to the element itself. */
+p[contenteditable]:empty::before {
+  content: attr(data-placeholder);
+  color: #888888; /* placeholder color */
+  font-style: italic;
+  pointer-events: none;
+  display: inline-block;
+}
+
+/* Remove browser focus outline / ring for these editable <p> elements so
+   clicking them won't show a border while still allowing typing. */
+p[contenteditable]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* More specific classes to ensure title/description don't show borders */
+.task-title-input:focus,
+.task-description:focus {
+  outline: none;
+  box-shadow: none;
 }

@@ -217,7 +217,16 @@ function renderProjects(projectService, projectsList, taskService) {
     const submit = document.createElement('button');
     submit.type = 'submit';
     submit.textContent = taskId ? 'Update' : 'Create';
-    
+
+        // helper to enable/disable the submit button based on the title's (normalized) content
+        const updateSubmitState = () => {
+            const text = (titleInput.textContent || '').replace(/\u00A0|\u200B/g, '').trim();
+            submit.disabled = text === '';
+        };
+
+        // initial state
+        updateSubmitState();
+
     const lastRow = document.createElement('div');
     lastRow.classList.add('form-last-row');
     
@@ -241,7 +250,11 @@ function renderProjects(projectService, projectsList, taskService) {
         time.value = taskService.getTaskById(taskId)?.getTime() || '';
         priority.value = taskService.getTaskById(taskId)?.getPriority() || '';
         projectSelect.value = taskService.getTaskById(taskId)?.getProjectId() || 'lonely-tasks';
+            // ensure submit button reflects the (possibly pre-filled) title
+            updateSubmitState();
     }
+
+    
 
     // NOTE: event listeners only receive the event object; use the
     // `taskId` from the outer scope (closure) to detect edit vs create.
@@ -272,6 +285,27 @@ function renderProjects(projectService, projectsList, taskService) {
         showLonelyTasks(taskService, content, projectService); // refresh view (could be smarter and only refresh if added to current view)
         addTaskDialog.close();
     });
+
+
+    // Ensure contenteditable placeholders work reliably: some browsers
+    // insert <br> or whitespace when clearing the field which prevents
+    // the CSS :empty selector from matching. Normalize the fields so
+    // that whitespace-only content becomes truly empty.
+    const normalizeEmpty = (el) => {
+        // Replace non-breaking spaces and zero-width spaces, then trim
+        const text = (el.textContent || '').replace(/\u00A0|\u200B/g, '').trim();
+        if (text === '') {
+            // clearing the textContent makes the element match :empty
+            el.textContent = '';
+        }
+    };
+
+    // on input and on blur, normalize empty content so placeholder appears
+    titleInput.addEventListener('input', () => normalizeEmpty(titleInput));
+        titleInput.addEventListener('input', () => { normalizeEmpty(titleInput); updateSubmitState(); });
+        titleInput.addEventListener('blur', () => { normalizeEmpty(titleInput); updateSubmitState(); });
+    desc.addEventListener('input', () => normalizeEmpty(desc));
+    desc.addEventListener('blur', () => normalizeEmpty(desc));
 
 
     document.body.appendChild(addTaskDialog);
