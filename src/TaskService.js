@@ -61,9 +61,6 @@ class TaskService {
     }
 
     setTaskPriority(id, priority) {
-        if (!Object.values(Priority).includes(priority)) {
-            throw new Error("Invalid priority value");
-        }
         const task = this.getTaskById(id);
         task.setPriority(priority);
         this.saveToLocalStorage();

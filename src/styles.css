@@ -243,11 +243,27 @@ dialog button {
   align-items: center;
 }
 
-.project-item svg {
+.project-item span {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.project-item svg, span.project-icon {
   width: 16px;
   height: 16px;
   margin-right: 8px;
 }
+
+/* Project name: allow truncation with ellipsis when too long */
+.project-name {
+  overflow: hidden;           /* hide overflow */
+  text-overflow: ellipsis;    /* show ... */
+  white-space: nowrap;        /* keep on single line */
+  vertical-align: middle;
+  padding-left: 4px;
+}
+
 
 .project-item:hover {
   background-color: #ddd; /* Light gray background on hover */
@@ -258,7 +274,7 @@ dialog button {
 /* Lonely Tasks Page */
 .task-item {
   display: flex;
-  align-items: center;
+  align-items: center;;
   padding: 8px;
   border-bottom: #f1f1f1 0.1px solid;
   font-size: 18px;
@@ -276,6 +292,14 @@ dialog button {
   font-size: 16px;
 }
 
+.task-title-input {
+  border: none;
+  background-color: transparent;
+  font-size: 32px;
+  font-weight: bold;
+  width: 100%;
+}
+
 
 .task-item:first-child {
   margin-top: 16px;
@@ -284,7 +308,7 @@ dialog button {
   border-bottom: none;
 }
 
-.delete-task-btn  {
+.delete-task-btn, .edit-task-btn  {
   margin-left: auto;
   background-color: transparent;
   border: none;
@@ -296,7 +320,114 @@ dialog button {
   justify-content: center;
 }
 
-.delete-task-btn svg {
+.delete-task-btn svg, .edit-task-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.task-item-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.priority-select {
+  padding: 4px;
+  border-radius: 4px;
+  border: none;
+  background-color: transparent;
+  margin-right: 20px;
+}
+
+.priority-select.Low {
+  color: green;
+}
+
+.priority-select.Medium {
+  color: orange;
+}
+
+.priority-select.High {
+  color: red;
+}
+
+.priority-select option {
+  color: black;
+}
+
+.edit-project-btn {
+  margin-left: auto;
+  background-color: transparent;
+  border: none;
+}
+
+.project-item-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.project-item-actions button {
+  width: 16px;
+  height: 16px;
+  border: transparent;
+  background-color: transparent;
+}   
+
+.project-item-actions button svg {
+  margin: auto;
+  border: transparent;
+  background-color: transparent;
+}   
+
+.project-item-actions button:hover {
+  cursor: pointer;
+  background-color: #ffffff;
+}   
+
+
+.edit-project-input {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: auto;
+}
+
+.save-project-btn{
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+
+.date-time-priority-container {
+  display: flex;
+  gap: 8px;
+}
+
+/* Show placeholder text for empty contenteditable <p> at all times.
+   Use pointer-events:none so clicks go through to the element itself. */
+p[contenteditable]:empty::before {
+  content: attr(data-placeholder);
+  color: #888888; /* placeholder color */
+  font-style: italic;
+  pointer-events: none;
+  display: inline-block;
+}
+
+/* Remove browser focus outline / ring for these editable <p> elements so
+   clicking them won't show a border while still allowing typing. */
+p[contenteditable]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* More specific classes to ensure title/description don't show borders */
+.task-title-input:focus,
+.task-description:focus {
+  outline: none;
+  box-shadow: none;
 }

@@ -24,8 +24,15 @@ class ProjectService {
     }
 
     deleteProject(id) {
-        this.projects = this.projects.filter(project => project.getId() !== id);
-        this.saveToLocalStorage();
+        const project = this.getProjectById(id);
+        if (project) {
+            const taskIds = project.getTasks?.() ?? project.tasks ?? [];
+            taskIds.forEach(taskId => {
+                document.dispatchEvent(new CustomEvent('deleteTaskById', { detail: taskId }));
+            });
+            this.projects = this.projects.filter(project => project.getId() !== id);
+            this.saveToLocalStorage();
+        }
     }
 
     getProjects() {
