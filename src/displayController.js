@@ -80,6 +80,14 @@ function showTaskForm(taskService, projectService, content, taskId) {
         const o = document.createElement('option'); o.value = v; o.textContent = v || 'Priority';
         priority.appendChild(o);
     });
+    // allow styling the select based on its value (uses CSS rules like .priority-select.Low)
+    priority.classList.add('priority-select');
+    const setPriorityClass = (sel) => {
+        sel.classList.remove('Low','Medium','High');
+        const val = sel.value;
+        if (val === 'Low' || val === 'Medium' || val === 'High') sel.classList.add(val);
+    };
+    priority.addEventListener('change', (e) => setPriorityClass(e.target));
     
     const projectSelect = document.createElement('select');
     projectSelect.classList.add('project-select');
@@ -105,7 +113,7 @@ function showTaskForm(taskService, projectService, content, taskId) {
     cancel.addEventListener('click', () => addTaskDialog.close());
     const submit = document.createElement('button');
     submit.type = 'submit';
-    submit.textContent = 'Create';
+    submit.textContent = taskId ? 'Update' : 'Create';
     
     const lastRow = document.createElement('div');
     lastRow.classList.add('form-last-row');
@@ -130,10 +138,13 @@ function showTaskForm(taskService, projectService, content, taskId) {
         projectSelect.value = taskService.getTaskById(taskId)?.getProjectId() || 'lonely-tasks';
     }
 
-    form.addEventListener('submit', (e, taskId) => {
+    // NOTE: event listeners only receive the event object; use the
+    // `taskId` from the outer scope (closure) to detect edit vs create.
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
         try {
             if (taskId) {
+                console.log('Submitting edit for task id=', taskId);
                 const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
                 taskService.updateTask(taskId, {
                     title: titleInput.value,
@@ -181,6 +192,7 @@ function showLonelyTasks(taskService, content, projectService) {
 }
 
 function renderTaskItem(task, taskService, refreshCallback, projectService) {
+
     const row = document.createElement('div');
     row.classList.add('task-item');
     const circleCb = document.createElement('label');
@@ -202,9 +214,36 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
     row.appendChild(cb);
     row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title));
 
+    // priority select for quick inline priority changes
+    const prioritySelect = document.createElement('select');
+    ['','Low','Medium','High'].forEach(v => {
+        const o = document.createElement('option'); o.value = v; o.textContent = v || 'Priority';
+        prioritySelect.appendChild(o);
+    });
+    prioritySelect.classList.add('priority-select');
+    const setPriorityClassInline = (sel) => {
+        sel.classList.remove('Low','Medium','High');
+        const val = sel.value;
+        if (val === 'Low' || val === 'Medium' || val === 'High') sel.classList.add(val);
+    };
+    const currentPriority = task.getPriority?.() ?? task.priority ?? '';
+    prioritySelect.value = currentPriority;
+    setPriorityClassInline(prioritySelect);
+    prioritySelect.addEventListener('change', (e) => {
+        const newPriority = e.target.value || null;
+        try {
+            taskService.updateTask?.(task.getId?.() ?? task.id, { priority: newPriority });
+        } catch (err) {
+            console.error('Failed to update priority', err);
+        }
+        setPriorityClassInline(e.target);
+        if (typeof refreshCallback === 'function') refreshCallback();
+    });
+    row.appendChild(prioritySelect);
+
     const actionDiv = document.createElement('div');
-    const editBtn = document.createElement('button');
     actionDiv.classList.add('task-item-actions');
+    const editBtn = document.createElement('button');
     actionDiv.appendChild(editBtn);
     row.appendChild(actionDiv);
     editBtn.classList.add('edit-task-btn');
@@ -226,9 +265,9 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
         }
         
     });
-    actionDiv.appendChild(deleteBtn);
 
-    console.log('renderTaskItem:', { id: task.getId?.() ?? task.id, done: task.getDone?.() ?? task.done, projectId: task.getProjectId?.() ?? task.projectId, name: task.getName?.() ?? task.name });
+
+    actionDiv.appendChild(deleteBtn);
     return row;
 }
 

@@ -306,3 +306,27 @@ dialog button {
   gap: 2px;
   margin-left: auto;
 }
+
+.priority-select {
+  padding: 4px;
+  border-radius: 4px;
+  border: none;
+  background-color: transparent;
+  margin-right: 20px;
+}
+
+.priority-select.Low {
+  color: green;
+}
+
+.priority-select.Medium {
+  color: orange;
+}
+
+.priority-select.High {
+  color: red;
+}
+
+.priority-select option {
+  color: black;
+}
