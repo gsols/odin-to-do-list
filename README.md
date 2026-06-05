@@ -1,67 +1,72 @@
-# The Steakhouse — Restaurant Page
+# Odin To‑Do List
 
-A single-page application for a fictional steakhouse restaurant, built as part of [The Odin Project](https://www.theodinproject.com/) curriculum. The project focuses on practicing **DOM manipulation** and **webpack module bundling** without using any frontend framework.
+A small single-page to‑do list application created while following The Odin Project. It demonstrates DOM-driven UI (no frameworks), modular JavaScript, and simple local persistence.
 
-## Purpose
+The app supports projects, tasks (with title, description, due date/time, priority), task completion, and editing. All UI is built programmatically from `src/template.html` and rendered inside the `#content` element.
 
-This project demonstrates building a dynamic, multi-section website entirely through JavaScript DOM manipulation. All page content is generated programmatically — there is no static HTML beyond a minimal shell template. Navigation between pages clears and re-renders the content div, simulating a single-page app routing pattern.
+## Features
 
-## Pages
+- Create, edit, and delete projects
+- Add tasks with: title, description, due date, time, priority, and optional project assignment
+- Edit tasks and projects inline
+- Mark tasks complete / view completed tasks
+- "Lonely Tasks" view (tasks without projects) and Today view (tasks due today)
+- Local persistence via the project's storage service (if enabled)
 
-| Page | Description |
-|------|-------------|
-| **Home** | Landing section with a tagline, restaurant description, hero image, and a "Book a Table" CTA |
-| **Menu** | Grid of menu items (Ribeye, Filet Mignon, New York Strip) with images, descriptions, and prices |
-| **About** | Photo gallery with a brief restaurant backstory |
-| **Book** | Reservation form collecting name, email, phone, date, time, and party size |
-
-## Tech Stack
-
-| Tool | Role |
-|------|------|
-| **Vanilla JavaScript (ES Modules)** | All UI logic and DOM manipulation |
-| **CSS** | Styling and layout |
-| **Webpack 5** | Module bundler — handles JS, CSS, and image assets |
-| **webpack-dev-server** | Local dev server with live reload |
-| **HtmlWebpackPlugin** | Generates `dist/index.html` from `src/template.html` |
-| **css-loader / style-loader** | Imports CSS files as modules |
-| **html-loader** | Processes HTML files as modules |
-| **Asset modules** | Bundles images (PNG, JPG, JPEG, WEBP) with content hashing |
-
-## Project Structure
+## Project structure
 
 ```
-src/
-  index.js       — entry point; nav wiring, page-switch logic
-  home.js        — Home page renderer
-  menu.js        — Menu page renderer + menu item data
-  about.js       — About page renderer
-  book.js        — Booking form renderer
-  styles.css     — Global styles
-  template.html  — HTML shell (nav bar, #content mount point)
-dist/            — webpack build output (gitignored)
+package.json
 webpack.config.js
+src/
+  index.js            — app entry + wiring
+  displayController.js— renders UI and handles user interactions
+  Task.js, Project.js  — domain models
+  *Factory.js, *Service.js — helpers and storage/service layers
+  template.html       — minimal HTML shell (nav + #content)
+  styles.css          — styles used by the app
+public/               — static assets (images)
 ```
 
-## Getting Started
+## Quick start (development)
+
+Make sure you have Node.js (v14+) and npm installed.
+
+Install deps and run dev server:
 
 ```bash
 npm install
-npm run dev      # starts webpack-dev-server (http://localhost:8080)
-npm run build    # production build → dist/
+npm run dev
 ```
 
-> Add these scripts to `package.json` if not already present:
-> ```json
-> "scripts": {
->   "dev": "webpack serve",
->   "build": "webpack"
-> }
-> ```
+Open the site at http://localhost:8080 (or the port printed by the dev server).
 
-## Key Concepts Practiced
+Build for production:
 
-- DOM manipulation with `createElement`, `appendChild`, `classList`, event listeners
-- ES module imports (JS, CSS, images) via webpack
-- Single-page navigation pattern without a framework or router library
-- Webpack configuration: loaders, plugins, asset modules, dev server
+```bash
+npm run build
+```
+
+## Notes about the contenteditable task title and submit button
+
+The task form uses a contenteditable `<p>` element for the task title. Browsers sometimes insert invisible characters (non‑breaking spaces or zero‑width characters) into contenteditable fields which makes naive `trim()` checks unreliable. There was an issue where the Create/Update submit button stayed disabled even when the user typed into the title field.
+
+A small fix was implemented in `src/displayController.js`:
+
+- The title text is normalized by removing `\u00A0` (non‑breaking space) and `\u200B` (zero‑width space) and then trimmed before checking for emptiness.
+- The submit button state is recomputed on `input` and `blur` events so typing immediately enables the button when the title contains actual visible characters.
+
+If you still see the button disabled after typing, try clearing the field and retyping, and inspect the element in DevTools to confirm the visible content. CSS can also make a button look disabled even when it's enabled, so check styles for `button[disabled]`.
+
+## Development tips
+
+- The app intentionally avoids frameworks to demonstrate DOM manipulation patterns. If you plan to refactor, consider isolating DOM creation to smaller components and adding tests.
+- `displayController.js` is the main file to edit for UI changes. Keep business logic in service/model files where possible.
+
+## Tests and linting
+
+This repo doesn't include automated tests by default. Add your preferred test runner (Jest, Mocha) if you want unit tests for services/models.
+
+## License
+
+This project is provided for learning and demonstration purposes.
