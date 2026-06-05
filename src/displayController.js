@@ -26,33 +26,23 @@ function renderProjects(projectService, projectsList, taskService) {
 
         const editBtn = document.createElement('button');
         editBtn.classList.add('edit-project-btn');
-        editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pencil-box-outline</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
+        editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Edit</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
 
         const deleteBtn = document.createElement('button');
         deleteBtn.classList.add('delete-project-btn');
         deleteBtn.textContent = '✕';
 
         el.className = 'project-item';
-        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg> ${p.getName?.() ?? p.name}`;
+        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg><span class="project-name">${p.getName?.() ?? p.name}</span>`;
         el.style.cursor = 'pointer';
         el.addEventListener('click', () => renderProjectView(p));
         projectsList.appendChild(el);
 
         //only show when item is hovered to avoid clutter, could be always visible with a less obtrusive design\
-        
-        editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showProjectForm(projectService, content, p);
-        });
-        
-        deleteBtn.addEventListener('click', (e) => {    
-            e.stopPropagation();
-            projectService.deleteProject(p.getId?.() ?? p.id);
-            renderProjects(projectService, projectsList, taskService);
-        });
-        
         const actionDiv = document.createElement('div');
         el.addEventListener('mouseenter', () => {
+            // don't show action buttons while the item is being edited
+            if (el.dataset.editing === 'true') return;
             actionDiv.classList.add('project-item-actions');
             el.appendChild(actionDiv);
             actionDiv.appendChild(editBtn);
@@ -61,7 +51,84 @@ function renderProjects(projectService, projectsList, taskService) {
         el.addEventListener('mouseleave', () => {
             actionDiv.remove();
         });
+        
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // mark as editing so hover actions stay hidden
+            el.dataset.editing = 'true';
+            // remove any existing action div from DOM to avoid overlap
+            try { actionDiv.remove(); } catch (err) {}
 
+            // clear content and build editable input + save button (use DOM API to wire events)
+            el.textContent = '';
+
+            const iconContainer = document.createElement('span');
+            iconContainer.classList.add('project-icon');
+            iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg>`;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'edit-project-input';
+            input.value = p.getName?.() ?? p.name;
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'save-project-btn';
+            saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>check</title><path d="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.58L9,16.17Z" /></svg>`;
+
+            el.appendChild(iconContainer);
+            el.appendChild(input);
+            el.appendChild(saveBtn);
+
+            // focus/select text for convenience
+            input.focus();
+            input.select();
+
+            const finishEditing = (cancel = false) => {
+                el.dataset.editing = 'false';
+                if (cancel) {
+                    // re-render projects to restore original view
+                    renderProjects(projectService, projectsList, taskService);
+                    return;
+                }
+                const newName = input.value?.trim();
+                if (!newName) {
+                    alert('Project name is required');
+                    input.focus();
+                    return;
+                }
+                const projId = p.getId?.() ?? p.id;
+                const proj = projectService.getProjectById(projId);
+                if (proj && typeof proj.setName === 'function') {
+                    proj.setName(newName);
+                    // persist change
+                    projectService.saveToLocalStorage?.();
+                }
+                // re-render to show updated name and actions
+                renderProjects(projectService, projectsList, taskService);
+                renderProjectView(proj); // also update project view header if currently viewing this project
+            };
+
+            saveBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                finishEditing(false);
+            });
+
+            input.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    finishEditing(false);
+                } else if (ev.key === 'Escape') {
+                    ev.preventDefault();
+                    finishEditing(true);
+                }
+            });
+        });
+        
+        deleteBtn.addEventListener('click', (e) => {    
+            e.stopPropagation();
+            projectService.deleteProject(p.getId?.() ?? p.id);
+            renderProjects(projectService, projectsList, taskService);
+        });
     });
 
     function renderProjectView(project) {
@@ -281,7 +348,7 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
     actionDiv.appendChild(editBtn);
     row.appendChild(actionDiv);
     editBtn.classList.add('edit-task-btn');
-    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pencil-box-outline</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
+    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Edit</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
     editBtn.addEventListener('click', () => {
         
         // console.log('Edit button clicked for task id=', taskId);

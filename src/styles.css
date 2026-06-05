@@ -243,11 +243,27 @@ dialog button {
   align-items: center;
 }
 
-.project-item svg {
+.project-item span {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.project-item svg, span.project-icon {
   width: 16px;
   height: 16px;
   margin-right: 8px;
 }
+
+/* Project name: allow truncation with ellipsis when too long */
+.project-name {
+  overflow: hidden;           /* hide overflow */
+  text-overflow: ellipsis;    /* show ... */
+  white-space: nowrap;        /* keep on single line */
+  vertical-align: middle;
+  padding-left: 4px;
+}
+
 
 .project-item:hover {
   background-color: #ddd; /* Light gray background on hover */
@@ -360,3 +376,20 @@ dialog button {
   cursor: pointer;
   background-color: #ffffff;
 }   
+
+
+.edit-project-input {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: auto;
+}
+
+.save-project-btn{
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: transparent;
+}
