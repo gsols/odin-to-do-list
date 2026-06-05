@@ -258,7 +258,7 @@ dialog button {
 /* Lonely Tasks Page */
 .task-item {
   display: flex;
-  align-items: center;
+  align-items: center;;
   padding: 8px;
   border-bottom: #f1f1f1 0.1px solid;
   font-size: 18px;
@@ -299,4 +299,10 @@ dialog button {
 .delete-task-btn svg, .edit-task-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.task-item-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
 }
