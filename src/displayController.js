@@ -23,11 +23,45 @@ function renderProjects(projectService, projectsList, taskService) {
     const projects = projectService.getProjects();
     projects.forEach(p => {
         const el = document.createElement('div');
+
+        const editBtn = document.createElement('button');
+        editBtn.classList.add('edit-project-btn');
+        editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pencil-box-outline</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-project-btn');
+        deleteBtn.textContent = '✕';
+
         el.className = 'project-item';
         el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg> ${p.getName?.() ?? p.name}`;
         el.style.cursor = 'pointer';
         el.addEventListener('click', () => renderProjectView(p));
         projectsList.appendChild(el);
+
+        //only show when item is hovered to avoid clutter, could be always visible with a less obtrusive design\
+        
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showProjectForm(projectService, content, p);
+        });
+        
+        deleteBtn.addEventListener('click', (e) => {    
+            e.stopPropagation();
+            projectService.deleteProject(p.getId?.() ?? p.id);
+            renderProjects(projectService, projectsList, taskService);
+        });
+        
+        const actionDiv = document.createElement('div');
+        el.addEventListener('mouseenter', () => {
+            actionDiv.classList.add('project-item-actions');
+            el.appendChild(actionDiv);
+            actionDiv.appendChild(editBtn);
+            actionDiv.appendChild(deleteBtn);
+        });
+        el.addEventListener('mouseleave', () => {
+            actionDiv.remove();
+        });
+
     });
 
     function renderProjectView(project) {
@@ -239,10 +273,10 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
         setPriorityClassInline(e.target);
         if (typeof refreshCallback === 'function') refreshCallback();
     });
-    row.appendChild(prioritySelect);
-
+    
     const actionDiv = document.createElement('div');
     actionDiv.classList.add('task-item-actions');
+    actionDiv.appendChild(prioritySelect);
     const editBtn = document.createElement('button');
     actionDiv.appendChild(editBtn);
     row.appendChild(actionDiv);

@@ -330,3 +330,33 @@ dialog button {
 .priority-select option {
   color: black;
 }
+
+.edit-project-btn {
+  margin-left: auto;
+  background-color: transparent;
+  border: none;
+}
+
+.project-item-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.project-item-actions button {
+  width: 16px;
+  height: 16px;
+  border: transparent;
+  background-color: transparent;
+}   
+
+.project-item-actions button svg {
+  margin: auto;
+  border: transparent;
+  background-color: transparent;
+}   
+
+.project-item-actions button:hover {
+  cursor: pointer;
+  background-color: #ffffff;
+}   
