@@ -18,10 +18,35 @@ function createElementsIfNeeded() {
     return { projectsList: list, content };
 }
 
+function renderProjectView(project, taskService, projectService, content = document.getElementById('content')) {
+    if (!project || !content) return;
+
+    content.innerHTML = '';
+    content.classList.remove('lonely-tasks-view');
+
+    const header = document.createElement('h2');
+    header.textContent = project.getName?.() ?? project.name ?? 'Untitled Project';
+    content.appendChild(header);
+
+    const wrapper = document.createElement('div');
+    const projId = project.getId?.() ?? project.id;
+    const tasks = taskService.getTasks().filter(t => {
+        const pid = (typeof t.getProjectId === 'function') ? t.getProjectId() : t.projectId;
+        return pid == projId && !(t.getDone?.() || t.done);
+    });
+
+    if (tasks.length === 0) wrapper.textContent = 'No tasks in this project.';
+    tasks.forEach(t => {
+        wrapper.appendChild(renderTaskItem(t, taskService, () => renderProjectView(project, taskService, projectService, content), projectService));
+    });
+    content.appendChild(wrapper);
+}
+
 function renderProjects(projectService, projectsList, taskService) {
     projectsList.innerHTML = '';
     const projects = projectService.getProjects();
     projects.forEach(p => {
+        const projectName = p.getName?.() ?? p.name ?? 'Untitled Project';
         const el = document.createElement('div');
 
         const editBtn = document.createElement('button');
@@ -33,9 +58,9 @@ function renderProjects(projectService, projectsList, taskService) {
         deleteBtn.textContent = '✕';
 
         el.className = 'project-item';
-        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg><span class="project-name">${p.getName?.() ?? p.name}</span>`;
+        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pound</title><path d="M5.41,21L6.12,17H2.12L2.47,15H6.47L7.53,9H3.53L3.88,7H7.88L8.59,3H10.59L9.88,7H15.88L16.59,3H18.59L17.88,7H21.88L21.53,9H17.53L16.47,15H20.47L20.12,17H16.12L15.41,21H13.41L14.12,17H8.12L7.41,21H5.41M9.53,9L8.47,15H14.47L15.53,9H9.53Z" /></svg><span class="project-name">${projectName}</span>`;
         el.style.cursor = 'pointer';
-        el.addEventListener('click', () => renderProjectView(p));
+        el.addEventListener('click', () => renderProjectView(p, taskService, projectService));
         projectsList.appendChild(el);
 
         //only show when item is hovered to avoid clutter, could be always visible with a less obtrusive design\
@@ -69,7 +94,7 @@ function renderProjects(projectService, projectsList, taskService) {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'edit-project-input';
-            input.value = p.getName?.() ?? p.name;
+            input.value = projectName;
 
             const saveBtn = document.createElement('button');
             saveBtn.className = 'save-project-btn';
@@ -105,7 +130,7 @@ function renderProjects(projectService, projectsList, taskService) {
                 }
                 // re-render to show updated name and actions
                 renderProjects(projectService, projectsList, taskService);
-                renderProjectView(proj); // also update project view header if currently viewing this project
+                renderProjectView(proj, taskService, projectService); // also update project view header if currently viewing this project
             };
 
             saveBtn.addEventListener('click', (ev) => {
@@ -130,28 +155,7 @@ function renderProjects(projectService, projectsList, taskService) {
             renderProjects(projectService, projectsList, taskService);
         });
     });
-
-    function renderProjectView(project) {
-        // show tasks that belong directly to project (not in sections) for now
-        const content = document.getElementById('content');
-        content.innerHTML = `<h2>${project.getName?.() ?? project.name}</h2>`;
-        const wrapper = document.createElement('div');
-        const projId = project.getId?.() ?? project.id;
-        const tasks = (taskService && typeof taskService.getTasks === 'function')
-            ? taskService.getTasks().filter(t => {
-                const pid = (typeof t.getProjectId === 'function') ? t.getProjectId() : t.projectId;
-                return pid == projId && !(t.getDone?.() || t.done);
-            })
-            : (project.getTasks?.() ?? project.tasks ?? []);
-            if (tasks.length === 0) wrapper.textContent = 'No tasks in this project.';
-            tasks.forEach(t => {
-                
-                console.log('renderProjectView:', { id: t.getId?.() ?? t.id, done: t.getDone?.() ?? t.done, projectId: t.getProjectId?.() ?? t.projectId });
-                wrapper.appendChild(renderTaskItem(t, taskService, () => renderProjectView(project), projectService));
-            });
-            content.appendChild(wrapper);
-        }
-    }
+}
     
     
     
@@ -255,34 +259,45 @@ function renderProjects(projectService, projectsList, taskService) {
     }
 
     
-
-    // NOTE: event listeners only receive the event object; use the
-    // `taskId` from the outer scope (closure) to detect edit vs create.
     form.addEventListener('submit', (e) => {
         e.preventDefault();
+        let selectedProjectId = null;
         try {
+            selectedProjectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
             if (taskId) {
-                console.log('Submitting edit for task id=', taskId);
-                const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
-                taskService.updateTask(taskId, {
+                const task = taskService.getTaskById(taskId);
+                const previousProjectId = task?.getProjectId?.() ?? task?.projectId ?? null;
+                const updatedTask = taskService.updateTask(taskId, {
                     title: titleInput.textContent,
                     description: desc.textContent,
                     dueDate: due.value || null,
                     time: time.value || null,
                     priority: priority.value || null,
-                    projectId
+                    projectId: selectedProjectId
                 });
+                if (previousProjectId && previousProjectId !== selectedProjectId) {
+                    projectService.removeTaskFromProject?.(previousProjectId, taskId, updatedTask);
+                }
+                if (selectedProjectId && previousProjectId !== selectedProjectId) {
+                    projectService.addTaskToProject?.(selectedProjectId, updatedTask);
+                }
             } else {
-                const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
-                const task = taskService.addTask(titleInput.textContent, desc.textContent, due.value || null, time.value || null, priority.value || null, projectId);
-                if (projectId) {
-                    projectService.addTaskToProject?.(projectId, task);
+                const task = taskService.addTask(titleInput.textContent, desc.textContent, due.value || null, time.value || null, priority.value || null, selectedProjectId);
+                if (selectedProjectId) {
+                    projectService.addTaskToProject?.(selectedProjectId, task);
                 }
             }
         } catch (err) {
             alert(err.message || 'Failed to create task');
+            return;
         }
-        showLonelyTasks(taskService, content, projectService); // refresh view (could be smarter and only refresh if added to current view)
+
+        if (selectedProjectId) {
+            const selectedProject = projectService.getProjectById(selectedProjectId);
+            renderProjectView(selectedProject, taskService, projectService, content);
+        } else {
+            showLonelyTasks(taskService, content, projectService);
+        }
         addTaskDialog.close();
     });
 
@@ -355,7 +370,7 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
         e.stopPropagation();
     });
     row.appendChild(cb);
-    row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title));
+    row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title ?? 'Untitled Task'));
 
     // priority select for quick inline priority changes
     const prioritySelect = document.createElement('select');
@@ -444,7 +459,7 @@ function showcompletedTasks(taskService, content, projectService) {
     content.appendChild(list);
 }   
 
-function createNewProject(projectService, projectsList) {
+function createNewProject(projectService, projectsList, taskService) {
     const newProjectInput = document.createElement('form');
     const input = document.createElement('input');
     const submit = document.createElement('button');
@@ -472,7 +487,7 @@ function createNewProject(projectService, projectsList) {
             projectService.addProject(name.trim());
         }
         newProjectInput.remove();
-        renderProjects(projectService, projectsList);
+        renderProjects(projectService, projectsList, taskService);
     });
 
     // listen on the text input for Enter (and Escape to cancel) — keydown on the button
@@ -518,7 +533,7 @@ function initDisplay(taskService, projectService) {
     addProjectBtn.type = 'button';
 
     addProjectBtn.addEventListener('click', () => {
-        createNewProject(projectService, projectsList);
+        createNewProject(projectService, projectsList, taskService);
     });
 
     // render initial lists
