@@ -143,35 +143,37 @@ function renderProjects(projectService, projectsList, taskService) {
                 return pid == projId && !(t.getDone?.() || t.done);
             })
             : (project.getTasks?.() ?? project.tasks ?? []);
-        if (tasks.length === 0) wrapper.textContent = 'No tasks in this project.';
-        tasks.forEach(t => {
-            
-            console.log('renderProjectView:', { id: t.getId?.() ?? t.id, done: t.getDone?.() ?? t.done, projectId: t.getProjectId?.() ?? t.projectId });
-            wrapper.appendChild(renderTaskItem(t, taskService, () => renderProjectView(project), projectService));
-        });
-        content.appendChild(wrapper);
+            if (tasks.length === 0) wrapper.textContent = 'No tasks in this project.';
+            tasks.forEach(t => {
+                
+                console.log('renderProjectView:', { id: t.getId?.() ?? t.id, done: t.getDone?.() ?? t.done, projectId: t.getProjectId?.() ?? t.projectId });
+                wrapper.appendChild(renderTaskItem(t, taskService, () => renderProjectView(project), projectService));
+            });
+            content.appendChild(wrapper);
+        }
     }
-}
+    
+    
+    
+    
+    function showTaskForm(taskService, projectService, content, taskId) {
+        const addTaskDialog = document.createElement('dialog');
+        const form = document.createElement('form');
+        addTaskDialog.appendChild(form);
 
 
-
-
-function showTaskForm(taskService, projectService, content, taskId) {
-    const addTaskDialog = document.createElement('dialog');
-    const form = document.createElement('form');
-    addTaskDialog.appendChild(form);
-
-    if (taskId) {
-        addTaskDialog.querySelector('form').appendChild(document.createElement('h2')).textContent = 'Edit Task';
-    } else {
-        addTaskDialog.querySelector('form').appendChild(document.createElement('h2')).textContent = 'Add New Task';
-    }
-
-    const titleInput = document.createElement('input');
-    titleInput.placeholder = 'Title';
+    const titleInput = document.createElement('p');
+    titleInput.contentEditable = true;
+    titleInput.setAttribute('data-placeholder', 'Title');
     titleInput.required = true;
-    const desc = document.createElement('input');
-    desc.placeholder = 'Description';
+    titleInput.classList.add('task-title-input');
+    const desc = document.createElement('p');
+    desc.contentEditable = true;
+    desc.classList.add('task-description');
+    desc.setAttribute('data-placeholder', 'Description');
+
+    const container = document.createElement('div');
+    container.classList.add('date-time-priority-container');
     const due = document.createElement('input');
     due.type = 'date';
     const time = document.createElement('input');
@@ -221,18 +223,20 @@ function showTaskForm(taskService, projectService, content, taskId) {
     
     form.appendChild(titleInput);
     form.appendChild(desc);
-    form.appendChild(due);
-    form.appendChild(time);
-    form.appendChild(priority);
+    form.appendChild(container);
+    container.appendChild(due);
+    container.appendChild(time);
+    container.appendChild(priority);
     form.appendChild(lastRow);
     lastRow.appendChild(projectSelect);
     actionDiv.appendChild(cancel);
     actionDiv.appendChild(submit);
     lastRow.appendChild(actionDiv);
+
     
     if (taskId) {
-        titleInput.value = taskService.getTaskById(taskId)?.getTitle() || 'Untitled Task';
-        desc.value = taskService.getTaskById(taskId)?.getDescription() || '';
+        titleInput.textContent = taskService.getTaskById(taskId)?.getTitle() || 'Untitled Task';
+        desc.textContent = taskService.getTaskById(taskId)?.getDescription() || '';
         due.value = taskService.getTaskById(taskId)?.getDueDate() || '';
         time.value = taskService.getTaskById(taskId)?.getTime() || '';
         priority.value = taskService.getTaskById(taskId)?.getPriority() || '';
@@ -248,8 +252,8 @@ function showTaskForm(taskService, projectService, content, taskId) {
                 console.log('Submitting edit for task id=', taskId);
                 const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
                 taskService.updateTask(taskId, {
-                    title: titleInput.value,
-                    description: desc.value,
+                    title: titleInput.textContent,
+                    description: desc.textContent,
                     dueDate: due.value || null,
                     time: time.value || null,
                     priority: priority.value || null,
@@ -257,7 +261,7 @@ function showTaskForm(taskService, projectService, content, taskId) {
                 });
             } else {
                 const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
-                const task = taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null, projectId);
+                const task = taskService.addTask(titleInput.textContent, desc.textContent, due.value || null, time.value || null, priority.value || null, projectId);
                 if (projectId) {
                     projectService.addTaskToProject?.(projectId, task);
                 }
@@ -312,6 +316,10 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
             refreshCallback();
         }
     });
+    // prevent clicks on the checkbox from bubbling and triggering the row click (which opens the edit form)
+    cb.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
     row.appendChild(cb);
     row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title));
 
@@ -340,12 +348,14 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
         setPriorityClassInline(e.target);
         if (typeof refreshCallback === 'function') refreshCallback();
     });
+    // stop click propagation so opening the select doesn't open the task form
+    prioritySelect.addEventListener('click', (e) => e.stopPropagation());
     
     const actionDiv = document.createElement('div');
     actionDiv.classList.add('task-item-actions');
     actionDiv.appendChild(prioritySelect);
     const editBtn = document.createElement('button');
-    actionDiv.appendChild(editBtn);
+    // actionDiv.appendChild(editBtn);
     row.appendChild(actionDiv);
     editBtn.classList.add('edit-task-btn');
     editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Edit</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
@@ -354,21 +364,25 @@ function renderTaskItem(task, taskService, refreshCallback, projectService) {
         // console.log('Edit button clicked for task id=', taskId);
         showTaskForm(taskService, projectService, document.getElementById('content'), task.getId?.() ?? task.id);
     });
-    actionDiv.appendChild(editBtn);
+    // actionDiv.appendChild(editBtn);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.classList.add('delete-task-btn');
     deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>delete</title><path d="M6,19A2,2,0,0,0,8,21H16a2,2,0,0,0,2-2V7H6ZM19,4H15.5l-1-1h-4l-1,1H5V6H19Z" /></svg>`;
-    deleteBtn.addEventListener('click', () => {
+    deleteBtn.addEventListener('click', (e) => {
+        // prevent the row click handler (which opens the edit form) from running
+        e.stopPropagation();
         taskService.removeTask?.(task.getId?.() ?? task.id);
         if (typeof refreshCallback === 'function') {
             refreshCallback();
         }
-        
     });
 
-
     actionDiv.appendChild(deleteBtn);
+    row.addEventListener('click', () => {
+        showTaskForm(taskService, projectService, document.getElementById('content'), task.getId?.() ?? task.id);
+    });
+
     return row;
 }
 

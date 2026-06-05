@@ -292,6 +292,14 @@ dialog button {
   font-size: 16px;
 }
 
+.task-title-input {
+  border: none;
+  background-color: transparent;
+  font-size: 32px;
+  font-weight: bold;
+  width: 100%;
+}
+
 
 .task-item:first-child {
   margin-top: 16px;
@@ -392,4 +400,16 @@ dialog button {
   border-radius: 4px;
   cursor: pointer;
   background-color: transparent;
+}
+
+
+.date-time-priority-container {
+  display: flex;
+  gap: 8px;
+}
+
+p[contenteditable]:empty:not(:focus)::before {
+    content: attr(data-placeholder);
+    color: #888888; /* Change to your preferred placeholder color */
+    font-style: italic; /* Usually styled like standard placeholder text */
 }
