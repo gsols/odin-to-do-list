@@ -284,7 +284,7 @@ dialog button {
   border-bottom: none;
 }
 
-.delete-task-btn  {
+.delete-task-btn, .edit-task-btn  {
   margin-left: auto;
   background-color: transparent;
   border: none;
@@ -296,7 +296,7 @@ dialog button {
   justify-content: center;
 }
 
-.delete-task-btn svg {
+.delete-task-btn svg, .edit-task-btn svg {
   width: 16px;
   height: 16px;
 }

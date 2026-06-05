@@ -57,7 +57,7 @@ function renderProjects(projectService, projectsList, taskService) {
 
 
 
-function showAddTaskForm(taskService, projectService, content) {
+function showAddTaskForm(taskService, projectService, content, taskId = null) {
     const addTaskDialog = document.createElement('dialog');
     const form = document.createElement('form');
     addTaskDialog.appendChild(form);
@@ -120,6 +120,26 @@ function showAddTaskForm(taskService, projectService, content) {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         try {
+            if(taskId) {
+                titleInput.value = taskService.getTaskById(taskId)?.getTitle() || 'Untitled Task';
+                desc.value = taskService.getTaskById(taskId)?.getDescription() || '';
+                due.value = taskService.getTaskById(taskId)?.getDueDate() || '';
+                time.value = taskService.getTaskById(taskId)?.getTime() || '';
+                priority.value = taskService.getTaskById(taskId)?.getPriority() || '';
+                projectSelect.value = taskService.getTaskById(taskId)?.getProjectId() || 'lonely-tasks';
+
+                taskService.updateTask(taskId, {
+                    title: titleInput.value,
+                    description: desc.value,
+                    dueDate: due.value || null,
+                    time: time.value || null,
+                    priority: priority.value || null,
+                    projectId: projectSelect.value === 'lonely-tasks' ? null : projectSelect.value
+                });
+                showLonelyTasks(taskService, content, projectService); // refresh view (could be smarter and only refresh if added to current view)
+                addTaskDialog.close();
+                return;
+            } 
             const projectId = projectSelect.value === 'lonely-tasks' ? null : projectSelect.value;
             const task = taskService.addTask(titleInput.value, desc.value, due.value || null, time.value || null, priority.value || null, projectId);
             if (projectId) {
@@ -128,7 +148,7 @@ function showAddTaskForm(taskService, projectService, content) {
         } catch (err) {
             alert(err.message || 'Failed to create task');
         }
-        showLonelyTasks(taskService, content); // refresh view (could be smarter and only refresh if added to current view)
+        showLonelyTasks(taskService, content, projectService); // refresh view (could be smarter and only refresh if added to current view)
         addTaskDialog.close();
     });
 
@@ -138,7 +158,7 @@ function showAddTaskForm(taskService, projectService, content) {
 }
 
 
-function showLonelyTasks(taskService, content) {
+function showLonelyTasks(taskService, content, projectService) {
     content.innerHTML = '<h1>Lonely Tasks</h1>';
     content.classList.add('lonely-tasks-view');
     const list = document.createElement('div');
@@ -150,12 +170,12 @@ function showLonelyTasks(taskService, content) {
     if (tasks.length === 0) list.textContent = 'No lonely tasks. Great job!';
     tasks.forEach(t => {
         console.log(t.getProjectId?.());
-        list.appendChild(renderTaskItem(t, taskService, () => showLonelyTasks(taskService, content)));
+        list.appendChild(renderTaskItem(t, taskService, () => showLonelyTasks(taskService, content, projectService), projectService));
     });
     content.appendChild(list);
 }
 
-function renderTaskItem(task, taskService, refreshCallback) {
+function renderTaskItem(task, taskService, refreshCallback, projectService) {
     const row = document.createElement('div');
     row.classList.add('task-item');
     const circleCb = document.createElement('label');
@@ -177,7 +197,16 @@ function renderTaskItem(task, taskService, refreshCallback) {
     row.appendChild(cb);
     row.appendChild(document.createTextNode(task.getTitle?.() ?? task.title));
 
-        const deleteBtn = document.createElement('button');
+    const editBtn = document.createElement('button');
+    editBtn.classList.add('edit-task-btn');
+    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pencil-box-outline</title><path d="M19,19V5H5V19H19M19,3A2,2 0 0,1 21,5V19C21,20.11 20.1,21 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M16.7,9.35L15.7,10.35L13.65,8.3L14.65,7.3C14.86,7.08 15.21,7.08 15.42,7.3L16.7,8.58C16.92,8.79 16.92,9.14 16.7,9.35M7,14.94L13.06,8.88L15.12,10.94L9.06,17H7V14.94Z" /></svg>`;
+    editBtn.addEventListener('click', () => {
+        const taskId = task.getId?.() ?? task.id;
+        showAddTaskForm(taskService, projectService, document.getElementById('content'), taskId);
+    });
+    row.appendChild(editBtn);
+
+    const deleteBtn = document.createElement('button');
     deleteBtn.classList.add('delete-task-btn');
     deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>delete</title><path d="M6,19A2,2,0,0,0,8,21H16a2,2,0,0,0,2-2V7H6ZM19,4H15.5l-1-1h-4l-1,1H5V6H19Z" /></svg>`;
     deleteBtn.addEventListener('click', () => {
@@ -192,26 +221,26 @@ function renderTaskItem(task, taskService, refreshCallback) {
     return row;
 }
 
-function showTodayTasks(taskService, content) {
+function showTodayTasks(taskService, content, projectService) {
     content.innerHTML = '<h1>Today</h1>';
     const list = document.createElement('div');
     const today = new Date().toISOString().slice(0,10);
     const tasks = taskService.getTasks().filter(t => (t.dueDate === today) && !(t.getDone?.() || t.done));
     if (tasks.length === 0) list.textContent = 'No tasks for today.';
     tasks.forEach(t => {
-        const render = renderTaskItem(t, taskService, () => showTodayTasks(taskService, content));
+        const render = renderTaskItem(t, taskService, () => showTodayTasks(taskService, content, projectService), projectService);
         list.appendChild(render);
     });
     content.appendChild(list);
 }
 
-function showcompletedTasks(taskService, content) {
+function showcompletedTasks(taskService, content, projectService) {
     content.innerHTML = '<h1>Completed Tasks</h1>';
     const list = document.createElement('div');
     const tasks = taskService.getTasks().filter(t => t.getDone?.() || t.done);
     if (tasks.length === 0) list.textContent = 'No completed tasks yet.';
     tasks.forEach(t => {
-        list.appendChild(renderTaskItem(t, taskService, () => showcompletedTasks(taskService, content)));
+        list.appendChild(renderTaskItem(t, taskService, () => showcompletedTasks(taskService, content, projectService), projectService));
     });
     content.appendChild(list);
 }   
@@ -274,14 +303,14 @@ function initDisplay(taskService, projectService) {
         if (children[0]) children[0].addEventListener('click', () => showAddTaskForm(taskService, projectService, content));
         // second - lonely tasks
         if (children[1]) children[1].addEventListener('click', () => {
-            showLonelyTasks(taskService, content);
+            showLonelyTasks(taskService, content, projectService);
         });
         // third - today (simple filter by dueDate===today)
         if (children[2]) children[2].addEventListener('click', () => { 
-            showTodayTasks(taskService, content);
+            showTodayTasks(taskService, content, projectService);
         });
         if (children[3]) children[3].addEventListener('click', () => {
-            showcompletedTasks(taskService, content);
+            showcompletedTasks(taskService, content, projectService);
         });
     }
     
@@ -294,7 +323,7 @@ function initDisplay(taskService, projectService) {
     });
 
     // render initial lists
-    showLonelyTasks(taskService, content);
+    showLonelyTasks(taskService, content, projectService);
     renderProjects(projectService, projectsList, taskService);
 
     // refresh projects list when tasks change (simple event)
